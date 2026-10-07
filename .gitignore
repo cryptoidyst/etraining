@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+.next/
+out/
+
+# Env — never commit real secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Generated
+apps/api/prisma/migrations/*/migration_lock.toml
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Uploads / local storage
+uploads/
+tmp/
+
+# Docs — keep only README.md
+/memory.md
+/tracker.md
+/tech-stack.md
+/MODULE-BUILD-PLAN.md
+/etraining-erd.md
+/etraining-sequence-diagrams.md
+/etraining-system-blueprint.md
+
+# Agent / local tooling
+.opencode/
+.hallmark/
+.kilo/

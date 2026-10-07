@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>E-Training — Company learning system</title>
+<!--
+Hallmark · genre: modern-minimal · macrostructure: Index-First · theme: Cobalt · enrichment: none (typography + mono readouts) · nav: Cobalt bordered + ⌘K palette · footer: Ft2 inline single line
+Hallmark · pre-emit critique: P5 H4 E5 S4 R5 V4
+Knobs: index rows = full-row buttons, meta right-aligned mono; reader sidebar = sticky 260px, collapses to chip scroller <60rem; quiz = one-question-at-a-time, radio rows 6px
+Gates: contrast pass (40–41) · nav N13-flavored · footer Ft2 · slop pass (42–45) · honest pass (46) · chrome pass (47) · tokens pass (48) · responsive pass (49) · mobile pass (34, 50–57)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============ tokens (locked — no inline colour values elsewhere) ============ */
+:root {
+  --color-paper:        oklch(98.5% 0.004 250);
+  --color-paper-2:      oklch(96.5% 0.006 251);
+  --color-ink:          oklch(24% 0.02 258);
+  --color-ink-2:        oklch(34% 0.018 257);
+  --color-muted:        oklch(48% 0.016 256);
+  --color-rule:         oklch(90% 0.008 252);
+  --color-rule-2:       oklch(84% 0.01 252);
+  --color-accent:       oklch(58% 0.20 256);
+  --color-accent-hover: oklch(53% 0.20 256);
+  --color-accent-soft:  oklch(74% 0.13 256);
+  --color-accent-ink:   oklch(98.5% 0.004 250);
+  --color-focus:        oklch(58% 0.20 256);
+  --color-graphite:     oklch(22% 0.016 260);
+  --color-graphite-2:   oklch(27% 0.016 260);
+  --color-graphite-ink: oklch(92% 0.008 256);
+  --color-status-pass:  oklch(44% 0.12 152);
+  --color-status-fail:  oklch(48% 0.17 27);
+
+  --color-paper-glass: oklch(98.5% 0.004 250 / 0.85);
+  --color-scrim:        oklch(24% 0.02 258 / 0.4);
+  --shadow-pop:         0 1px 2px oklch(24% 0.02 258 / 0.05), 0 12px 32px oklch(24% 0.02 258 / 0.12);
+
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --text-xs:  0.6944rem;
+  --text-sm:  0.8rem;
+  --text-base: 1rem;
+  --text-md:  1.25rem;
+  --text-lg:  1.5625rem;
+  --text-xl:  1.9531rem;
+  --text-2xl: 2.4414rem;
+  --text-3xl: 3.0518rem;
+
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs:  0.5rem;
+  --space-sm:  0.75rem;
+  --space-md:  1rem;
+  --space-lg:  1.5rem;
+  --space-xl:  2.5rem;
+  --space-2xl: 4rem;
+
+  --radius-ctl: 6px;
+  --radius-card: 10px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:  cubic-bezier(0.7, 0, 0.84, 0);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long:  420ms;
+
+  --z-sticky: 200;
+  --z-modal:  400;
+}
+
+/* ============ base ============ */
+html { overflow-x: clip; }
+body {
+  overflow-x: clip;
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink-2);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+*, *::before, *::after { box-sizing: border-box; }
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--color-ink);
+  font-style: normal;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+p { margin: 0; }
+ul, ol { margin: 0; padding-inline-start: 1.25em; }
+li { margin-block: var(--space-2xs); }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+button:disabled { cursor: not-allowed; }
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+.num { font-variant-numeric: tabular-nums; }
+
+.container {
+  max-width: 1120px;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2.5rem);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============ views ============ */
+.view { animation: viewIn 250ms var(--ease-out); }
+.view[hidden] { display: none; }
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ============ buttons ============ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  line-height: 1;
+  padding: 0 var(--space-md);
+  height: 44px;
+  border-radius: var(--radius-ctl);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  transition: background-color var(--dur-micro) var(--ease-out),
+              border-color var(--dur-micro) var(--ease-out),
+              color var(--dur-micro) var(--ease-out),
+              transform 100ms var(--ease-out);
+}
+.btn:active { transform: translateY(1px); }
+.btn--primary { background: var(--color-accent); color: var(--color-accent-ink); }
+.btn--primary:hover { background: var(--color-accent-hover); }
+.btn--ghost { border-color: var(--color-rule-2); color: var(--color-ink); background: var(--color-paper); }
+.btn--ghost:hover { border-color: var(--color-muted); }
+.btn:disabled { opacity: 0.4; }
+.btn:disabled:hover { background: var(--color-accent); }
+.btn--ghost:disabled:hover { background: var(--color-paper); border-color: var(--color-rule-2); }
+.btn svg { width: 15px; height: 15px; flex: none; }
+
+@media (pointer: coarse) {
+  .btn { min-height: 44px; }
+  .kbtn { min-height: 44px; }
+  .pal-item { min-height: 44px; padding: var(--space-sm); }
+}
+
+/* ============ nav (Cobalt bordered bar + ⌘K) ============ */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  background: var(--color-paper-glass);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-rule);
+}
+.nav__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  height: 56px;
+}
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-md);
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+.nav__links { display: flex; gap: var(--space-md); margin-inline-end: auto; }
+.nav__link {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-muted);
+  text-decoration: none;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--space-3xs);
+  white-space: nowrap;
+  transition: color var(--dur-micro) var(--ease-out);
+}
+.nav__link:hover { color: var(--color-ink); text-decoration: underline; text-decoration-color: var(--color-accent); text-underline-offset: 4px; }
+.nav__link[aria-current="page"] { color: var(--color-ink); box-shadow: inset 0 -2px 0 var(--color-accent); border-radius: 0; }
+.nav__right { display: flex; align-items: center; gap: var(--space-sm); margin-inline-start: auto; }
+.kbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  height: 32px;
+  padding-inline: var(--space-sm);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-ctl);
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transition: border-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+.kbtn:hover { border-color: var(--color-accent); color: var(--color-ink); }
+.kbtn kbd {
+  font-family: inherit;
+  font-size: inherit;
+  border: 1px solid var(--color-rule);
+  border-radius: 3px;
+  padding: 1px 4px;
+  background: var(--color-paper-2);
+}
+.who { font-size: var(--text-xs); color: var(--color-muted); white-space: nowrap; }
+.who strong { color: var(--color-ink); font-weight: 600; }
+
+@media (max-width: 47.99rem) {
+  .nav__links { display: none; }
+  .kbtn .kbtn__label { display: none; }
+  .who { display: none; }
+}
+
+/* ============ footer (Ft2) ============ */
+.foot {
+  border-top: 1px solid var(--color-rule);
+  margin-top: var(--space-2xl);
+}
+.foot__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-md);
+  padding-block: var(--space-lg);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+.foot__inner .mono { font-size: var(--text-xs); }
+.foot__sep { color: var(--color-rule-2); }
+
+/* ============ login ============ */
+.login {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: var(--space-2xl);
+  align-items: start;
+  padding-block: var(--space-2xl);
+}
+.login__pitch p.lede {
+  font-size: var(--text-md);
+  color: var(--color-ink-2);
+  max-width: 34ch;
+  margin-top: var(--space-md);
+}
+.readout {
+  margin-top: var(--space-xl);
+  border-top: 1px solid var(--color-rule);
+  border-bottom: 1px solid var(--color-rule);
+  padding-block: var(--space-md);
+  display: grid;
+  gap: var(--space-2xs);
+  color: var(--color-muted);
+}
+.readout .mono strong { color: var(--color-ink); font-weight: 500; }
+.login__panel { border: 1px solid var(--color-rule); border-radius: var(--radius-card); padding: var(--space-lg); background: var(--color-paper); }
+.field { margin-bottom: var(--space-md); }
+.field label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink);
+  margin-bottom: var(--space-2xs);
+}
+.field input {
+  width: 100%;
+  height: 44px;
+  padding-inline: var(--space-sm);
+  font: inherit;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-ctl);
+  transition: border-color var(--dur-micro) var(--ease-out);
+}
+.field input:hover { border-color: var(--color-muted); }
+.field input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 0; border-color: var(--color-accent); }
+.field .hint { margin-top: var(--space-2xs); font-size: var(--text-xs); color: var(--color-muted); }
+.form-error {
+  display: none;
+  margin: 0 0 var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-ctl);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  background: var(--color-paper-2);
+}
+.form-error.is-on { display: block; }
+.form-error strong { display: block; }
+.field input[aria-invalid="true"] { border-color: var(--color-status-fail); }
+.field .slot { min-height: 1.25em; }
+.login__note { margin-top: var(--space-md); font-size: var(--text-xs); color: var(--color-muted); }
+
+@media (max-width: 59.99rem) {
+  .login { grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); padding-block: var(--space-xl); }
+}
+
+/* ============ dashboard (Index-First) ============ */
+.pagehead { padding-block: var(--space-xl) var(--space-lg); }
+.eyebrow { color: var(--color-accent); margin-bottom: var(--space-sm); }
+.pagehead h1 { font-size: var(--text-2xl); font-weight: 600; }
+.pagehead .sub { margin-top: var(--space-sm); color: var(--color-muted); font-size: var(--text-sm); }
+
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-lg);
+  border-top: 1px solid var(--color-rule);
+  border-bottom: 1px solid var(--color-rule);
+  padding-block: var(--space-sm);
+  margin-bottom: var(--space-lg);
+  color: var(--color-muted);
+}
+.strip .mono strong { color: var(--color-ink); font-weight: 500; }
+
+.courselist { border-top: 1px solid var(--color-rule); }
+.courserow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  text-align: left;
+  padding-block: var(--space-md);
+  padding-inline: var(--space-sm);
+  border-bottom: 1px solid var(--color-rule);
+  transition: background-color var(--dur-micro) var(--ease-out);
+}
+.courserow--link:hover { background: var(--color-paper-2); }
+.courserow--link:hover .courserow__title { text-decoration: underline; text-decoration-color: var(--color-accent); text-underline-offset: 4px; }
+.courserow__status { display: inline-flex; align-items: flex-start; gap: var(--space-2xs); flex: 1; min-width: 0; }
+.courserow__status svg { width: 14px; height: 14px; flex: none; margin-top: 5px; }
+.courserow__titlewrap { display: grid; min-width: 0; }
+.courserow__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-md);
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.courserow__meta { margin-top: var(--space-2xs); font-size: var(--text-xs); color: var(--color-muted); }
+.courserow__due { color: var(--color-muted); white-space: nowrap; }
+.courserow__due strong { color: var(--color-ink); font-weight: 500; }
+.courserow__go { color: var(--color-muted); display: inline-flex; }
+.courserow__go svg { width: 16px; height: 16px; transition: transform var(--dur-micro) var(--ease-out); }
+.courserow--link:hover .courserow__go svg { transform: translateX(2px); }
+.st--pass { color: var(--color-status-pass); }
+.st--fail { color: var(--color-status-fail); }
+.st--progress, .st--todo { color: var(--color-muted); }
+.listnote { padding-block: var(--space-md); color: var(--color-muted); }
+.listnote .mono { color: var(--color-muted); }
+
+@media (max-width: 47.99rem) {
+  .courserow { grid-template-columns: minmax(0, 1fr) auto; }
+  .courserow__due { grid-column: 1; order: 3; }
+  .courserow__go { display: none; }
+}
+
+/* ============ course reader ============ */
+.readerhead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-xs) var(--space-md);
+  padding-block: var(--space-lg) var(--space-md);
+}
+.readerhead h1 { font-size: var(--text-xl); font-weight: 600; }
+.readerhead .mono { color: var(--color-muted); }
+.backlink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-muted);
+  white-space: nowrap;
+  transition: color var(--dur-micro) var(--ease-out);
+}
+.backlink:hover { color: var(--color-ink); }
+.backlink svg { width: 14px; height: 14px; }
+
+.reader {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: var(--space-xl);
+  align-items: start;
+  padding-bottom: var(--space-xl);
+}
+.slidenav { position: sticky; top: 72px; }
+.slidenav__label { color: var(--color-muted); margin-bottom: var(--space-xs); display: flex; justify-content: space-between; gap: var(--space-sm); }
+.progress {
+  height: 3px;
+  background: var(--color-rule);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: var(--space-md);
+}
+.progress__fill {
+  height: 100%;
+  max-width: 0;
+  background: var(--color-accent);
+  transition: max-width var(--dur-long) var(--ease-out);
+}
+.slidelist { display: grid; gap: 1px; }
+.slideitem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+  text-align: left;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--space-3xs);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+.slideitem:hover { background: var(--color-paper-2); color: var(--color-ink); }
+.slideitem[aria-current="true"] { background: var(--color-paper-2); color: var(--color-ink); box-shadow: inset 2px 0 0 var(--color-accent); border-radius: 0 var(--space-3xs) var(--space-3xs) 0; }
+.slideitem .n { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-muted); flex: none; width: 2.2em; }
+.slideitem .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slideitem .ck { margin-inline-start: auto; flex: none; color: var(--color-status-pass); display: inline-flex; }
+.slideitem .ck svg { width: 13px; height: 13px; }
+.slideitem .ck:empty { display: none; }
+
+.slide {
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-card);
+  padding: var(--space-xl);
+  background: var(--color-paper);
+}
+.slide__no { color: var(--color-muted); margin-bottom: var(--space-sm); }
+.slide h2 { font-size: var(--text-xl); font-weight: 600; margin-bottom: var(--space-md); }
+.slide__body { max-width: 65ch; color: var(--color-ink-2); }
+.slide__body p + p { margin-top: var(--space-sm); }
+.slide__body ul { margin-top: var(--space-sm); }
+.slide__body li::marker { color: var(--color-accent); }
+
+.slide__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-rule);
+}
+.slide__actions .spacer { flex: 1; }
+.gate {
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+.gate.is-ready { color: var(--color-accent); }
+
+@media (max-width: 59.99rem) {
+  .reader { grid-template-columns: minmax(0, 1fr); gap: var(--space-md); }
+  .slidenav { position: static; }
+  .slidelist {
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+    padding-bottom: var(--space-2xs);
+  }
+  .slideitem .t { display: none; }
+  .slideitem { justify-content: center; border: 1px solid var(--color-rule); border-radius: var(--radius-ctl); padding: var(--space-2xs) var(--space-sm); }
+  .slideitem[aria-current="true"] { border-color: var(--color-accent); box-shadow: none; border-radius: var(--radius-ctl); }
+  .slide { padding: var(--space-lg); }
+}
+
+/* ============ quiz ============ */
+.quizhead { padding-block: var(--space-lg) var(--space-md); }
+.quizhead h1 { font-size: var(--text-xl); font-weight: 600; margin-top: var(--space-2xs); }
+.quizmeta { display: flex; flex-wrap: wrap; gap: var(--space-xs) var(--space-md); color: var(--color-muted); margin-top: var(--space-sm); }
+
+.qprogress { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-lg); }
+.qprogress .progress { flex: 1; margin-bottom: 0; }
+.qprogress .mono { color: var(--color-muted); white-space: nowrap; }
+
+.question h2 { font-size: var(--text-lg); font-weight: 600; max-width: 60ch; margin-bottom: var(--space-md); }
+.qtype { color: var(--color-muted); display: block; margin-bottom: var(--space-sm); }
+.qfigure {
+  margin: 0 0 var(--space-md);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-card);
+  background: var(--color-paper-2);
+  padding: var(--space-xl) var(--space-md);
+  text-align: center;
+  color: var(--color-muted);
+}
+.qfigure figcaption { margin-top: var(--space-xs); }
+.qfigure .block { display: block; font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: 0.06em; text-transform: uppercase; }
+
+.opts { display: grid; gap: var(--space-xs); max-width: 60ch; }
+.opt {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-ctl);
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+  transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.opt:hover { border-color: var(--color-muted); }
+.opt input { position: absolute; opacity: 0; pointer-events: none; }
+.opt__dot {
+  flex: none;
+  width: 14px; height: 14px;
+  margin-top: 4px;
+  border: 1.5px solid var(--color-rule-2);
+  border-radius: 50%;
+  transition: border-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+}
+.opt__text { font-size: var(--text-sm); color: var(--color-ink-2); }
+.opt:has(input:checked) { border-color: var(--color-accent); background: var(--color-paper-2); }
+.opt:has(input:checked) .opt__dot { border-color: var(--color-accent); box-shadow: inset 0 0 0 3.5px var(--color-paper), inset 0 0 0 8px var(--color-accent); }
+.opt:has(input:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.opt--tf { max-width: 60ch; }
+
+.quiz__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+  margin-top: var(--space-lg);
+}
+.quiz__actions .spacer { flex: 1; }
+.quiz__hint { color: var(--color-muted); font-size: var(--text-xs); }
+
+/* ============ results ============ */
+.results { padding-block: var(--space-xl); }
+.results__score {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-md);
+}
+.score {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-3xl);
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-ctl);
+  padding: var(--space-2xs) var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+.verdict svg { width: 13px; height: 13px; }
+.verdict--pass { border-color: var(--color-status-pass); color: var(--color-status-pass); }
+.verdict--fail { border-color: var(--color-status-fail); color: var(--color-status-fail); }
+.results__sub { color: var(--color-muted); max-width: 60ch; }
+.results__actions { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-top: var(--space-lg); }
+.exhausted { color: var(--color-muted); font-size: var(--text-sm); max-width: 60ch; }
+
+.review { margin-top: var(--space-xl); border-top: 1px solid var(--color-rule); }
+.review h2 { font-size: var(--text-md); font-weight: 600; padding-block: var(--space-md); }
+.reviewrow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-sm) var(--space-md);
+  padding-block: var(--space-md);
+  border-top: 1px solid var(--color-rule);
+}
+.reviewrow .st { display: inline-flex; margin-top: 3px; }
+.reviewrow .st svg { width: 15px; height: 15px; }
+.reviewrow__q { font-size: var(--text-sm); color: var(--color-ink); font-weight: 500; }
+.reviewrow__a { margin-top: var(--space-2xs); font-size: var(--text-xs); color: var(--color-muted); }
+.reviewrow__a strong { color: var(--color-ink); font-weight: 500; }
+.reviewrow__a.is-wrong strong { color: var(--color-status-fail); }
+
+/* ============ command palette ============ */
+.palette-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: var(--color-scrim);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(1rem, 12vh, 6rem) var(--space-md) var(--space-md);
+}
+.palette-backdrop.is-open { display: flex; }
+.palette {
+  width: min(560px, 100%);
+  background: var(--color-paper);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-pop);
+  overflow: hidden;
+}
+.palette input {
+  width: 100%;
+  height: 48px;
+  border: 0;
+  border-bottom: 1px solid var(--color-rule);
+  padding-inline: var(--space-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  background: var(--color-paper);
+}
+.palette input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.palette__list { max-height: 320px; overflow-y: auto; padding: var(--space-2xs); }
+.pal-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  text-align: left;
+  padding: var(--space-sm) var(--space-sm);
+  border-radius: var(--space-3xs);
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+.pal-item .mono { color: var(--color-muted); margin-inline-start: auto; }
+.pal-item[aria-selected="true"] { background: var(--color-paper-2); box-shadow: inset 2px 0 0 var(--color-accent); border-radius: 0 var(--space-3xs) var(--space-3xs) 0; }
+.palette__foot {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-2xs) var(--space-md);
+  border-top: 1px solid var(--color-rule);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+.palette__empty { padding: var(--space-md); color: var(--color-muted); font-size: var(--text-sm); }
+
+/* ============ reduced motion ============ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 150ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 150ms !important;
+  }
+  .view { animation: none; }
+  .progress__fill { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ================= sign in ================= -->
+<section class="view" id="view-login" aria-labelledby="login-h" hidden>
+  <div class="container login">
+    <div class="login__pitch">
+      <p class="wordmark" id="login-h" tabindex="-1" style="font-size:var(--text-lg)">E-Training</p>
+      <p class="lede">Company training courses, assigned by your department. Sign in with the account you use at work.</p>
+      <div class="readout" aria-hidden="true">
+        <span class="mono">Auth · <strong>LDAPS · port 636</strong></span>
+        <span class="mono">Directory · <strong>Company Active Directory</strong></span>
+        <span class="mono">Account · <strong>read-only service lookup</strong></span>
+      </div>
+    </div>
+    <form class="login__panel" id="login-form" novalidate>
+      <div class="form-error" id="login-error" role="alert">
+        <strong>Both fields are needed to sign in.</strong>
+        Enter your company username and password, then try again.
+      </div>      <div class="field">
+        <label for="f-user">Company username</label>
+        <input id="f-user" name="username" type="text" autocomplete="username" placeholder="e.g. s.tan">
+        <p class="hint slot"></p>
+      </div>
+      <div class="field">
+        <label for="f-pass">Password</label>
+        <input id="f-pass" name="password" type="password" autocomplete="current-password" placeholder="Your usual work password">
+        <p class="hint slot">Verified against Active Directory — your password is never stored here.</p>
+      </div>
+      <button type="submit" class="btn btn--primary">Sign in</button>
+      <p class="login__note">Prototype build — any credentials will sign you in.</p>
+    </form>
+  </div>
+</section>
+
+<!-- ================= app shell ================= -->
+<header class="nav" id="app-nav" hidden>
+  <div class="container nav__inner">
+    <span class="wordmark">E-Training</span>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="#" class="nav__link" id="nav-home" aria-current="page">My training</a>
+    </nav>
+    <div class="nav__right">
+      <button type="button" class="kbtn" id="cmdk-open" aria-haspopup="dialog">
+        <span class="kbtn__label">Search commands</span>
+        <kbd>⌘K</kbd>
+      </button>
+      <span class="who" id="nav-who"><strong>—</strong> · Staff</span>
+    </div>
+  </div>
+</header>
+
+<main id="app-main" hidden>
+
+  <!-- ================= dashboard ================= -->
+  <section class="view" id="view-dashboard" aria-labelledby="dash-h" hidden>
+    <div class="container">
+      <div class="pagehead">
+        <p class="mono eyebrow">My training</p>
+        <h1 id="dash-h" tabindex="-1">Assigned courses</h1>
+        <p class="sub" id="dash-sub">—</p>
+      </div>
+      <div class="strip" id="dash-strip" aria-hidden="true"></div>
+      <div class="courselist" id="dash-list" role="list"></div>
+      <p class="listnote"><span class="mono">Prototype · the full flow — read, quiz, result — is wired for “Information Security Essentials”</span></p>
+    </div>
+  </section>
+
+  <!-- ================= course reader ================= -->
+  <section class="view" id="view-course" aria-labelledby="course-h" hidden>
+    <div class="container">
+      <div class="readerhead">
+        <a href="#" class="backlink" id="course-back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+          My training
+        </a>
+        <h1 id="course-h" tabindex="-1">—</h1>
+        <span class="mono" id="course-meta">—</span>
+      </div>
+      <div class="reader">
+        <aside class="slidenav" aria-label="Course slides">
+          <p class="mono slidenav__label"><span>Slides</span><span id="slide-count" class="num">0 / 0 viewed</span></p>
+          <div class="progress" aria-hidden="true"><div class="progress__fill" id="slide-progress"></div></div>
+          <div class="slidelist" id="slide-list" role="list"></div>
+        </aside>
+        <article class="slide" aria-labelledby="slide-title">
+          <p class="mono slide__no" id="slide-no">—</p>
+          <h2 id="slide-title" tabindex="-1">—</h2>
+          <div class="slide__body" id="slide-body"></div>
+          <div class="slide__actions">
+            <button type="button" class="btn btn--ghost" id="slide-prev">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+              Previous
+            </button>
+            <span class="spacer"></span>
+            <span class="mono gate" id="quiz-gate" aria-live="polite">—</span>
+            <button type="button" class="btn btn--primary" id="slide-next">—</button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= quiz ================= -->
+  <section class="view" id="view-quiz" aria-labelledby="quiz-h" hidden>
+    <div class="container">
+      <div class="quizhead">
+        <p class="mono eyebrow">Quiz · attempt <span id="quiz-attempt" class="num">1</span> of 3</p>
+        <h1 id="quiz-h" tabindex="-1">Information Security Essentials</h1>
+        <div class="quizmeta">
+          <span class="mono">10 questions</span>
+          <span class="mono">Passing score · 80%</span>
+          <span class="mono">One attempt recorded per submission</span>
+        </div>
+      </div>
+      <div class="qprogress">
+        <span class="mono" id="q-count">Question 1 / 10</span>
+        <div class="progress" aria-hidden="true"><div class="progress__fill" id="q-progress"></div></div>
+      </div>
+      <form id="quiz-form" novalidate>
+        <div class="question">
+          <span class="mono qtype" id="q-type">Multiple choice</span>
+          <h2 id="q-text" tabindex="-1">—</h2>
+          <figure class="qfigure" id="q-figure" hidden>
+            <span class="block">Exhibit A</span>
+            <figcaption>Question image placeholder — attached in the admin build.</figcaption>
+          </figure>
+          <div class="opts" id="q-opts" role="radiogroup" aria-labelledby="q-text"></div>
+        </div>
+        <div class="quiz__actions">
+          <button type="button" class="btn btn--ghost" id="q-prev">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+            Back
+          </button>
+          <span class="spacer"></span>
+          <span class="quiz__hint" id="q-hint" aria-live="polite"></span>
+          <button type="button" class="btn btn--primary" id="q-next" disabled>Next question</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ================= results ================= -->
+  <section class="view" id="view-results" aria-labelledby="results-h" hidden>
+    <div class="container results">
+      <p class="mono eyebrow" id="results-eyebrow">Result · attempt 1</p>
+      <h1 id="results-h" tabindex="-1" class="visually-hidden">Quiz result</h1>
+      <div class="results__score">
+        <span class="score" id="score-num">0%</span>
+        <span class="verdict" id="verdict"></span>
+      </div>
+      <p class="results__sub" id="results-sub">—</p>
+      <div class="results__actions" id="results-actions"></div>
+      <div class="review">
+        <h2>Answer review</h2>
+        <div id="review-list"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ================= footer (Ft2) ================= -->
+<footer class="foot" id="app-foot" hidden>
+  <div class="container foot__inner">
+    <span>E-Training</span>
+    <span class="foot__sep" aria-hidden="true">·</span>
+    <span>Internal learning system</span>
+    <span class="foot__sep" aria-hidden="true">·</span>
+    <span class="mono">Prototype 0.1 · September 2026</span>
+    <span class="foot__sep" aria-hidden="true">·</span>
+    <span>Runs on the company network</span>
+  </div>
+</footer>
+
+<!-- ================= command palette ================= -->
+<div class="palette-backdrop" id="palette">
+  <div class="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+    <input type="text" id="palette-input" placeholder="Type a command…" aria-label="Filter commands" autocomplete="off">
+    <div class="palette__list" id="palette-list" role="listbox" aria-label="Commands"></div>
+    <div class="palette__foot mono">
+      <span>↑↓ navigate</span><span>↵ select</span><span>esc close</span>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ================= data ================= */
+const SLIDES = [
+  { t: "Why this training matters",
+    b: `<p>Most security incidents don’t start with a hacker breaking in — they start with an ordinary workday: an email opened in a hurry, a password reused, a laptop left unlocked.</p>
+        <p>This course covers the handful of habits that prevent the majority of those incidents. It takes about fifteen minutes, and the quiz at the end needs a score of 80% to pass.</p>` },
+  { t: "Phishing: the most common attack",
+    b: `<p>Phishing is a message — email, chat, or text — that pretends to come from someone you trust to make you click a link, open an attachment, or hand over information.</p>
+        <p>It works because it looks routine. Attackers copy our real layouts, real signatures, and real names. Volume matters too: they only need one person to click once.</p>` },
+  { t: "Spotting a phishing email",
+    b: `<p>Before you click anything, run through this list:</p>
+        <ul>
+          <li>Does the sender’s address match the name — character for character?</li>
+          <li>Is the message rushing you, or threatening a consequence “today”?</li>
+          <li>Does the link’s destination match where it claims to go? Hover to check.</li>
+          <li>Were you expecting this attachment at all?</li>
+        </ul>
+        <p>One mismatch is enough to stop and report. You will never be criticised for reporting a real email by mistake.</p>` },
+  { t: "Passwords and passphrases",
+    b: `<p>Length beats complexity. A passphrase of four unrelated words is both stronger and easier to remember than a short password full of symbols.</p>
+        <p>Two rules cover most of it:</p>
+        <ul>
+          <li>Every system gets its own password — reuse is how one leak becomes ten.</li>
+          <li>Company passwords live in the approved password manager, never in browsers you are not sure are managed, and never in email or chat.</li>
+        </ul>` },
+  { t: "Multi-factor authentication",
+    b: `<p>Multi-factor authentication (MFA) means proving who you are with something in addition to your password — usually an approval prompt or a code on your phone.</p>
+        <p>It stops most account-takeover attempts even when the password has leaked. Two habits make it safe:</p>
+        <ul>
+          <li>Approve a prompt only when <em>you</em> started the sign-in. An unexpected prompt means someone has your password — decline and report it.</li>
+          <li>Never read a verification code out to anyone, including “IT”.</li>
+        </ul>` },
+  { t: "Devices and screen locking",
+    b: `<p>An unlocked machine is an open door to anyone standing nearby. Lock your screen every time you step away — even for a minute, even in an internal office.</p>
+        <p>On Windows, press <strong>Win + L</strong>. On macOS, <strong>Control + Command + Q</strong>. Make it reflex, not decision.</p>
+        <p>Off-site, the same rule applies in cafés, trains, and shared spaces — and devices travel in hand luggage, not checked bags.</p>` },
+  { t: "Data handling and storage",
+    b: `<p>Company data — documents, spreadsheets, customer records, code — belongs in approved company systems. That is where it is backed up, access-controlled, and auditable.</p>
+        <p>As a rule:</p>
+        <ul>
+          <li>Personal cloud drives and personal email are never company storage.</li>
+          <li>Share by permission, not by attachment, whenever the system allows it.</li>
+          <li>If you are unsure whether something is sensitive, treat it as if it is.</li>
+        </ul>` },
+  { t: "Public networks and remote work",
+    b: `<p>Public Wi-Fi in cafés, airports, and hotels is shared with strangers. That does not make it unusable — it makes it untrusted.</p>
+        <p>When you connect from anywhere off the office network, use the company VPN before signing in to anything internal. The VPN encrypts your traffic so neighbours on the same network cannot read it.</p>
+        <p>If the VPN will not connect, do not work around it — report it and use a mobile connection instead.</p>` },
+  { t: "Social engineering beyond email",
+    b: `<p>Social engineering is persuasion used as an attack tool. Email is only one channel — the phone and chat count too.</p>
+        <p>Typical moves: a caller claiming to be from the help desk who needs “just your approval code”; a chat message from a colleague’s account with an urgent link; a visitor asking you to hold a door.</p>
+        <p>The defence is the same everywhere: verify through a channel you choose. Call the help desk on the published number. Ask the colleague, face to face. Check with security before tailgating anyone in.</p>` },
+  { t: "Reporting: when in doubt, report",
+    b: `<p>Speed beats certainty. A reported suspicion that turns out to be nothing costs minutes. An unreported real attack costs days.</p>
+        <p>Report to the service desk — the “Report phishing” button in your mail client, or the published internal number. If you clicked something you now doubt, report it immediately: early reports dramatically reduce harm, and nobody is blamed for reporting promptly.</p>
+        <p>That is the whole course. The quiz ahead has ten questions, and you need eight or more correct to pass.</p>` },
+];
+
+const QUESTIONS = [
+  { type: "tf", q: "An email from “IT Support” asks for your password to verify your account. Replying is acceptable as long as the email looks internal.",
+    opts: ["True", "False"], correct: 1 },
+  { type: "mc", q: "Which password practice is most effective?",
+    opts: ["Adding numbers to your birthday", "Reusing one strong password everywhere", "A long, unique passphrase stored in the approved password manager", "Writing it on a note under the keyboard"], correct: 2 },
+  { type: "mc", q: "A caller says they are from the help desk and asks you to approve an MFA prompt you did not start. What do you do?",
+    opts: ["Approve it — the help desk can see your screen", "Decline, hang up, and report the call to the service desk", "Approve it, then change your password", "Ignore the call and keep working"], correct: 1 },
+  { type: "tf", q: "Connecting to internal systems from café Wi-Fi is acceptable when you first connect through the company VPN.",
+    opts: ["True", "False"], correct: 0 },
+  { type: "mc", img: true, q: "Look at Exhibit A. Which detail is the strongest phishing indicator?",
+    opts: ["The email is short", "It arrived on a Monday", "The logo uses blue", "The sender’s domain is misspelled"], correct: 3 },
+  { type: "mc", q: "Where may company data be stored?",
+    opts: ["In personal email as a backup", "On any personal cloud drive for convenience", "Only in approved company systems and storage", "On USB sticks brought from home"], correct: 2 },
+  { type: "tf", q: "Locking your workstation is required every time you leave your desk, even for a short break.",
+    opts: ["True", "False"], correct: 0 },
+  { type: "mc", q: "A chat message from a colleague’s account contains a link you find suspicious. What is the first action?",
+    opts: ["Click it to check whether it is malicious", "Forward it to the team chat as a warning", "Delete the message and say nothing", "Don’t click — verify with the colleague through another channel and report it"], correct: 3 },
+  { type: "mc", q: "Which of these is social engineering?",
+    opts: ["A firewall blocking a port", "A phone call pressuring you to reveal an approval code", "An automatic software update", "A scheduled backup job"], correct: 1 },
+  { type: "tf", q: "Reporting a clicked phishing link early reduces harm, and you will not be blamed for reporting promptly.",
+    opts: ["True", "False"], correct: 0 },
+];
+
+const OTHER_COURSES = [
+  { title: "Manual Handling Awareness", meta: "10 slides · 8 questions · passing 80%",
+    due: "Due 30 Sep 2026", status: "fail", statusText: "Failed 60% · retry available", attempts: "2 of 3 attempts left" },
+  { title: "Data Privacy Fundamentals", meta: "8 slides · 10 questions · passing 80%",
+    due: "Passed 10 Sep 2026", status: "pass", statusText: "Passed 90%", attempts: "" },
+  { title: "Workplace Fire Safety", meta: "12 slides · 10 questions · passing 80%",
+    due: "Due 15 Oct 2026", status: "todo", statusText: "Not started", attempts: "" },
+];
+
+/* ================= icons ================= */
+function icon(name) {
+  const paths = {
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    right: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+    retry: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+    circle: '<circle cx="12" cy="12" r="9"/>',
+  };
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || ""}</svg>`;
+}
+
+/* ================= state ================= */
+const state = {
+  user: null,
+  view: "login",
+  slideIndex: 0,
+  viewed: new Set(),
+  attempt: 1,
+  qIndex: 0,
+  answers: Array(QUESTIONS.length).fill(null),
+  graded: null,
+  best: null,
+};
+
+const $ = (sel) => document.querySelector(sel);
+const views = ["login", "dashboard", "course", "quiz", "results"];
+
+function show(name) {
+  state.view = name;
+  for (const v of views) {
+    const el = $(`#view-${v}`);
+    el.hidden = v !== name;
+  }
+  const inApp = name !== "login";
+  $("#app-nav").hidden = !inApp;
+  $("#app-main").hidden = !inApp;
+  $("#app-foot").hidden = !inApp;
+  if (inApp) $("#nav-home").setAttribute("aria-current", name === "dashboard" ? "page" : "false");
+  window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+  if (name !== "login") {
+    const h = $(`#view-${name} h1, #view-${name} h2`);
+    if (h) h.focus({ preventScroll: true });
+  }
+}
+
+/* ================= login ================= */
+$("#login-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const u = $("#f-user").value.trim();
+  const p = $("#f-pass").value;
+  const err = $("#login-error");
+  if (!u || !p) {
+    err.classList.add("is-on");
+    if (!u) $("#f-user").setAttribute("aria-invalid", "true");
+    if (!p) $("#f-pass").setAttribute("aria-invalid", "true");
+    return;
+  }
+  err.classList.remove("is-on");
+  $("#f-user").setAttribute("aria-invalid", "false");
+  $("#f-pass").setAttribute("aria-invalid", "false");
+  state.user = u;
+  $("#nav-who").innerHTML = `<strong>${escapeHtml(u)}</strong> · Staff`;
+  renderDashboard();
+  show("dashboard");
+});
+
+$("#f-user").addEventListener("input", () => {
+  $("#login-error").classList.remove("is-on");
+  $("#f-user").setAttribute("aria-invalid", "false");
+});
+$("#f-pass").addEventListener("input", () => {
+  $("#login-error").classList.remove("is-on");
+  $("#f-pass").setAttribute("aria-invalid", "false");
+});
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ================= dashboard ================= */
+function course1Status() {
+  if (state.graded) {
+    return state.graded.passed
+      ? { cls: "pass", text: `Passed ${state.graded.score}%`, icon: "check" }
+      : { cls: "fail", text: `Failed ${state.graded.score}% · retry available`, icon: "x" };
+  }
+  const n = state.viewed.size;
+  if (n === 0) return { cls: "todo", text: "Not started", icon: "circle" };
+  return { cls: "progress2", text: `In progress · ${n} / ${SLIDES.length} slides`, icon: "circle" };
+}
+
+function renderDashboard() {
+  const s1 = course1Status();
+  const stMap = {
+    pass: ["st--pass", "check"], fail: ["st--fail", "x"],
+    progress: ["st--progress", "circle"], progress2: ["st--progress", "circle"], todo: ["st--progress", "circle"],
+  };
+  const [cls1, ic1] = stMap[s1.cls] || stMap.todo;
+
+  const row = (cls, ic, title, meta, due, statusCls, statusText, link) => `
+    ${link
+      ? `<button type="button" role="listitem" class="courserow courserow--link" data-open-course>
+           ${rowInner(cls, ic, title, meta, due, statusCls, statusText)}
+         </button>`
+      : `<div role="listitem" class="courserow">
+           ${rowInner(cls, ic, title, meta, due, statusCls, statusText)}
+         </div>`}`;
+
+  const rowInner = (cls, ic, title, meta, due, statusCls, statusText) => `
+    <span class="courserow__status ${cls}">${icon(ic)}<span class="courserow__titlewrap">
+      <span class="courserow__title">${title}</span>
+      <span class="courserow__meta">${meta}<br>${statusText}</span>
+    </span></span>
+    <span class="mono courserow__due">${due}</span>
+    <span class="courserow__go">${icon("right")}</span>`;
+  $("#dash-list").innerHTML =
+    row(cls1, ic1, "Information Security Essentials",
+      `${SLIDES.length} slides · ${QUESTIONS.length} questions · passing 80%`,
+      "<strong>Due 30 Sep 2026</strong>", s1.cls === "progress2" ? "st--progress" : cls1, s1.text, true) +
+    OTHER_COURSES.map((c) =>
+      row(stMap[c.status][0], stMap[c.status][1], c.title, c.meta, c.due, stMap[c.status][0], `${c.statusText}${c.attempts ? " · " + c.attempts : ""}`, false)
+    ).join("");
+
+  const passedCount = 1 + (state.graded && state.graded.passed ? 1 : 0);
+  const open = 4 - passedCount;
+  $("#dash-sub").textContent = `${state.user} · staff · 4 courses assigned`;
+  $("#dash-strip").innerHTML = `
+    <span class="mono">Assigned <strong>04</strong></span>
+    <span class="mono">Passed <strong>0${passedCount}</strong></span>
+    <span class="mono">Open <strong>0${open}</strong></span>
+    <span class="mono">Next due <strong>30 Sep</strong></span>`;
+
+  document.querySelectorAll("[data-open-course]").forEach((b) =>
+    b.addEventListener("click", openCourse)
+  );
+}
+
+$("#nav-home").addEventListener("click", (e) => {
+  e.preventDefault();
+  renderDashboard();
+  show("dashboard");
+});
+
+/* ================= course reader ================= */
+function openCourse() {
+  state.slideIndex = state.viewed.size > 0 ? Math.min(state.viewed.size, SLIDES.length - 1) : 0;
+  renderCourse();
+  show("course");
+}
+
+$("#course-back").addEventListener("click", (e) => {
+  e.preventDefault();
+  renderDashboard();
+  show("dashboard");
+});
+
+function allViewed() { return state.viewed.size === SLIDES.length; }
+
+function renderCourse() {
+  $("#course-h").textContent = "Information Security Essentials";
+  $("#course-meta").textContent = "10 slides · quiz locked until all viewed";
+
+  const list = $("#slide-list");
+  list.innerHTML = SLIDES.map((s, i) => `
+    <button type="button" role="listitem" class="slideitem" data-slide="${i}" aria-current="${i === state.slideIndex}">
+      <span class="n">${String(i + 1).padStart(2, "0")}</span>
+      <span class="t">${s.t}</span>
+      <span class="ck">${state.viewed.has(i) ? icon("check") : ""}</span>
+    </button>`).join("");
+  list.querySelectorAll("[data-slide]").forEach((b) =>
+    b.addEventListener("click", () => { state.slideIndex = Number(b.dataset.slide); renderCourse(); })
+  );
+
+  const viewed = state.viewed.size;
+  $("#slide-count").textContent = `${viewed} / ${SLIDES.length} viewed`;
+  $("#slide-progress").style.maxWidth = `${(viewed / SLIDES.length) * 100}%`;
+
+  const s = SLIDES[state.slideIndex];
+  $("#slide-no").textContent = `Slide ${String(state.slideIndex + 1).padStart(2, "0")} / ${String(SLIDES.length).padStart(2, "0")}`;
+  $("#slide-title").textContent = s.t;
+  $("#slide-body").innerHTML = s.b;
+
+  const prev = $("#slide-prev");
+  prev.disabled = state.slideIndex === 0;
+
+  const gate = $("#quiz-gate");
+  const next = $("#slide-next");
+  const remaining = SLIDES.length - viewed;
+  if (allViewed()) {
+    gate.textContent = "Quiz ready · 10 questions · passing 80%";
+    gate.classList.add("is-ready");
+    next.innerHTML = state.graded ? "Review result" : "Start quiz " + icon("right");
+    next.disabled = false;
+    next.dataset.action = state.graded ? "results" : "quiz";
+  } else {
+    gate.textContent = `Quiz locked · ${remaining} slide${remaining === 1 ? "" : "s"} remaining`;
+    gate.classList.remove("is-ready");
+    const isLast = state.slideIndex === SLIDES.length - 1;
+    next.innerHTML = isLast
+      ? "View remaining slides first"
+      : `Mark viewed & continue ${icon("right")}`;
+    next.disabled = isLast;
+    next.dataset.action = "advance";
+  }
+}
+
+$("#slide-prev").addEventListener("click", () => {
+  if (state.slideIndex > 0) { state.slideIndex--; renderCourse(); }
+});
+
+$("#slide-next").addEventListener("click", () => {
+  const next = $("#slide-next");
+  if (next.dataset.action === "quiz") { startQuiz(); return; }
+  if (next.dataset.action === "results") { renderResults(); show("results"); return; }
+  state.viewed.add(state.slideIndex);
+  if (state.slideIndex < SLIDES.length - 1) state.slideIndex++;
+  renderCourse();
+});
+
+/* ================= quiz ================= */
+function startQuiz() {
+  state.qIndex = 0;
+  state.answers = Array(QUESTIONS.length).fill(null);
+  state.graded = null;
+  renderQuiz();
+  show("quiz");
+}
+
+function renderQuiz() {
+  $("#quiz-attempt").textContent = state.attempt;
+  const q = QUESTIONS[state.qIndex];
+  $("#q-count").textContent = `Question ${state.qIndex + 1} / ${QUESTIONS.length}`;
+  $("#q-progress").style.maxWidth = `${(state.qIndex / QUESTIONS.length) * 100}%`;
+  $("#q-type").textContent = q.type === "tf" ? "True or false" : "Multiple choice";
+  $("#q-text").textContent = q.q;
+  $("#q-figure").hidden = !q.img;
+
+  const letters = ["A", "B", "C", "D"];
+  $("#q-opts").innerHTML = q.opts.map((o, i) => `
+    <label class="opt ${q.type === "tf" ? "opt--tf" : ""}">
+      <input type="radio" name="answer" value="${i}" ${state.answers[state.qIndex] === i ? "checked" : ""}>
+      <span class="opt__dot" aria-hidden="true"></span>
+      <span class="opt__text">${q.type === "mc" ? `<strong class="mono" style="letter-spacing:.04em">${letters[i]}</strong>&ensp;` : ""}${o}</span>
+    </label>`).join("");
+
+  $("#q-opts").querySelectorAll("input").forEach((r) =>
+    r.addEventListener("change", () => {
+      state.answers[state.qIndex] = Number(r.value);
+      updateQuizActions();
+    })
+  );
+
+  $("#q-prev").disabled = state.qIndex === 0;
+  const last = state.qIndex === QUESTIONS.length - 1;
+  $("#q-next").textContent = last ? "Submit answers" : "Next question";
+  updateQuizActions();
+  $("#q-text").focus({ preventScroll: true });
+}
+
+function updateQuizActions() {
+  const answered = state.answers[state.qIndex] !== null;
+  $("#q-next").disabled = !answered;
+  $("#q-hint").textContent = answered ? "" : "Choose an answer to continue.";
+}
+
+$("#q-prev").addEventListener("click", () => {
+  if (state.qIndex > 0) { state.qIndex--; renderQuiz(); }
+});
+
+$("#q-next").addEventListener("click", () => {
+  if (state.answers[state.qIndex] === null) return;
+  if (state.qIndex < QUESTIONS.length - 1) {
+    state.qIndex++;
+    renderQuiz();
+  } else {
+    grade();
+  }
+});
+
+/* ================= grading + results ================= */
+function grade() {
+  const correct = QUESTIONS.reduce((n, q, i) => n + (state.answers[i] === q.correct ? 1 : 0), 0);
+  const score = Math.round((correct / QUESTIONS.length) * 100);
+  state.graded = { correct, score, passed: score >= 80 };
+  renderResults();
+  show("results");
+}
+
+function renderResults() {
+  const g = state.graded;
+  $("#results-eyebrow").textContent = `Result · attempt ${state.attempt} of 3`;
+  $("#results-sub").textContent =
+    `You answered ${g.correct} of ${QUESTIONS.length} correctly. Passing score: 80%. ` +
+    (g.passed ? "Course complete — this assignment is marked as passed." :
+      state.attempt < 3 ? "Not passed this time. You can retry immediately." :
+      "Not passed, and no attempts remain. Contact your administrator to have the course reassigned.");
+
+  const v = $("#verdict");
+  v.className = "verdict " + (g.passed ? "verdict--pass" : "verdict--fail");
+  v.innerHTML = `${icon(g.passed ? "check" : "x")} ${g.passed ? "Pass" : "Fail"}`;
+
+  const acts = $("#results-actions");
+  acts.innerHTML = "";
+  const home = document.createElement("button");
+  home.className = "btn btn--ghost";
+  home.innerHTML = `${icon("right").replace('<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>', '<path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>')} Back to my training`;
+  home.addEventListener("click", () => { renderDashboard(); show("dashboard"); });
+  acts.appendChild(home);
+  if (!g.passed && state.attempt < 3) {
+    const retry = document.createElement("button");
+    retry.className = "btn btn--primary";
+    retry.innerHTML = `${icon("retry")} Retry quiz`;
+    retry.addEventListener("click", () => { state.attempt++; startQuiz(); });
+    acts.appendChild(retry);
+  }
+  if (!g.passed && state.attempt >= 3) {
+    const note = document.createElement("p");
+    note.className = "exhausted";
+    note.textContent = "Attempts exhausted — an administrator can reassign the course.";
+    acts.appendChild(note);
+  }
+
+  const letters = ["A", "B", "C", "D"];
+  $("#review-list").innerHTML = QUESTIONS.map((q, i) => {
+    const ok = state.answers[i] === q.correct;
+    const yours = state.answers[i] === null ? "—" :
+      (q.type === "tf" ? q.opts[state.answers[i]] : `${letters[state.answers[i]]} — ${q.opts[state.answers[i]]}`);
+    const right = q.type === "tf" ? q.opts[q.correct] : `${letters[q.correct]} — ${q.opts[q.correct]}`;
+    return `
+      <div class="reviewrow">
+        <span class="st ${ok ? "st--pass" : "st--fail"}">${icon(ok ? "check" : "x")}</span>
+        <div>
+          <p class="reviewrow__q">${q.q}</p>
+          <p class="reviewrow__a ${ok ? "" : "is-wrong"}">Your answer — <strong>${yours}</strong></p>
+          ${ok ? "" : `<p class="reviewrow__a">Correct answer — <strong>${right}</strong></p>`}
+        </div>
+      </div>`;
+  }).join("");
+
+  animateScore(g.score);
+}
+
+function animateScore(target) {
+  const el = $("#score-num");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) { el.textContent = `${target}%`; return; }
+  const t0 = performance.now();
+  const dur = 900;
+  function tick(t) {
+    const p = Math.min((t - t0) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = `${Math.round(eased * target)}%`;
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ================= command palette ================= */
+const palette = $("#palette");
+const palInput = $("#palette-input");
+const palList = $("#palette-list");
+let palItems = [];
+let palSel = 0;
+
+function palCommands() {
+  const cmds = [
+    { label: "Go to My Training", key: "home", run: () => { renderDashboard(); show("dashboard"); } },
+    { label: "Open course — Information Security Essentials", key: "course", run: openCourse },
+  ];
+  if (allViewed() && !state.graded) {
+    cmds.push({ label: "Start quiz — Information Security Essentials", key: "quiz", run: startQuiz });
+  }
+  if (state.graded) {
+    cmds.push({ label: "View last result", key: "result", run: () => { renderResults(); show("results"); } });
+  }
+  cmds.push({ label: "Sign out", key: "out", run: signOut });
+  return cmds;
+}
+
+function palRender(filter) {
+  palItems = palCommands().filter((c) => c.label.toLowerCase().includes(filter.toLowerCase()));
+  palSel = 0;
+  palList.innerHTML = palItems.length
+    ? palItems.map((c, i) => `
+        <button type="button" class="pal-item" role="option" data-pal="${i}" aria-selected="${i === palSel}">
+          ${c.label}<span class="mono">${c.key}</span>
+        </button>`).join("")
+    : `<p class="palette__empty">No matching command.</p>`;
+  palList.querySelectorAll("[data-pal]").forEach((b) =>
+    b.addEventListener("click", () => palRun(Number(b.dataset.pal)))
+  );
+}
+
+function palRun(i) {
+  const c = palItems[i];
+  palClose();
+  if (c) c.run();
+}
+
+function palOpen() {
+  if (state.view === "login") return;
+  palette.classList.add("is-open");
+  palInput.value = "";
+  palRender("");
+  palInput.focus();
+}
+function palClose() {
+  palette.classList.remove("is-open");
+}
+
+$("#cmdk-open").addEventListener("click", palOpen);
+palette.addEventListener("click", (e) => { if (e.target === palette) palClose(); });
+palInput.addEventListener("input", () => palRender(palInput.value));
+
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    palette.classList.contains("is-open") ? palClose() : palOpen();
+    return;
+  }
+  if (!palette.classList.contains("is-open")) return;
+  if (e.key === "Escape") { palClose(); }
+  if (e.key === "ArrowDown") { e.preventDefault(); palSel = Math.min(palSel + 1, palItems.length - 1); palSync(); }
+  if (e.key === "ArrowUp") { e.preventDefault(); palSel = Math.max(palSel - 1, 0); palSync(); }
+  if (e.key === "Enter") { e.preventDefault(); palRun(palSel); }
+});
+
+function palSync() {
+  palList.querySelectorAll("[data-pal]").forEach((b, i) => b.setAttribute("aria-selected", String(i === palSel)));
+}
+
+function signOut() {
+  state.user = null;
+  state.viewed = new Set();
+  state.attempt = 1;
+  state.qIndex = 0;
+  state.answers = Array(QUESTIONS.length).fill(null);
+  state.graded = null;
+  state.best = null;
+  $("#login-form").reset();
+  show("login");
+  $("#f-user").focus();
+}
+
+/* ================= boot ================= */
+show("login");
+</script>
+</body>
+</html>

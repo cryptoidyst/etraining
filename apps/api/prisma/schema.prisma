@@ -1,0 +1,396 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Course {
+  id           String       @id @default(uuid()) @db.Uuid
+  title        String       @db.VarChar(200)
+  description  String?      @db.VarChar(2000)
+  status       CourseStatus @default(draft)
+  passingScore Int          @default(80) @map("passing_score")
+  allowRetake  Boolean      @default(true) @map("allow_retake")
+  maxAttempts  Int?         @map("max_attempts")
+  shuffleQuestions Boolean   @default(true) @map("shuffle_questions")
+  shuffleOptions   Boolean   @default(true) @map("shuffle_options")
+  createdById  String       @map("created_by_id") @db.Uuid
+  publishedAt  DateTime?    @map("published_at") @db.Timestamptz(6)
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  createdBy     User             @relation("CourseCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  slides        Slide[]
+  progress      SlideProgress[]
+  bankQuestions Question[]
+  questions     CourseQuestion[]
+  assignments   Assignment[]
+  attempts      QuizAttempt[]
+  notifications Notification[]
+
+  @@index([status])
+  @@index([createdById])
+  @@map("courses")
+}
+
+enum CourseStatus {
+  draft
+  published
+  archived
+
+  @@map("course_status")
+}
+
+model Slide {
+  id         String   @id @default(uuid()) @db.Uuid
+  courseId   String   @map("course_id") @db.Uuid
+  title      String   @db.VarChar(200)
+  filePath   String   @map("file_path") @db.VarChar(500)
+  mimeType   String   @map("mime_type") @db.VarChar(100)
+  fileSize   Int      @map("file_size")
+  orderIndex Int      @map("order_index")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  course   Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress SlideProgress[]
+
+  @@index([courseId])
+  @@map("slides")
+}
+
+model SlideProgress {
+  id       String   @id @default(uuid()) @db.Uuid
+  userId   String   @map("user_id") @db.Uuid
+  slideId  String   @map("slide_id") @db.Uuid
+  courseId String   @map("course_id") @db.Uuid
+  viewedAt DateTime @default(now()) @map("viewed_at") @db.Timestamptz(6)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slide  Slide  @relation(fields: [slideId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, slideId])
+  @@index([userId, courseId])
+  @@map("slide_progress")
+}
+
+model Question {
+  id          String       @id @default(uuid()) @db.Uuid
+  courseId    String       @map("course_id") @db.Uuid
+  setIndex    Int          @default(1) @map("set_index")
+  orderIndex  Int          @default(0) @map("order_index")
+  type        QuestionType @default(multiple_choice)
+  text        String       @db.VarChar(1000)
+  imagePath   String?      @map("image_path") @db.VarChar(500)
+  imageMime   String?      @map("image_mime") @db.VarChar(100)
+  createdById String       @map("created_by_id") @db.Uuid
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  course          Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  options         QuestionOption[]
+  createdBy       User             @relation("QuestionCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  courseQuestions CourseQuestion[]
+  quizAnswers     QuizAnswer[]
+
+  @@index([courseId, setIndex])
+  @@index([type])
+  @@index([createdById])
+  @@map("questions")
+}
+
+model QuestionOption {
+  id         String  @id @default(uuid()) @db.Uuid
+  questionId String  @map("question_id") @db.Uuid
+  text       String  @db.VarChar(500)
+  isCorrect  Boolean @default(false) @map("is_correct")
+  orderIndex Int     @default(0) @map("order_index")
+
+  question Question           @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answers  QuizAnswerOption[]
+
+  @@index([questionId])
+  @@map("question_options")
+}
+
+enum QuestionType {
+  multiple_choice
+  true_false
+
+  @@map("question_type")
+}
+
+model CourseQuestion {
+  id         String @id @default(uuid()) @db.Uuid
+  courseId   String @map("course_id") @db.Uuid
+  questionId String @map("question_id") @db.Uuid
+  orderIndex Int    @default(0) @map("order_index")
+  setIndex   Int    @default(1) @map("set_index")
+
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, questionId])
+  @@index([courseId])
+  @@map("course_questions")
+}
+
+model Assignment {
+  id           String           @id @default(uuid()) @db.Uuid
+  courseId     String           @map("course_id") @db.Uuid
+  userId       String           @map("user_id") @db.Uuid
+  targetType   AssignmentTarget @map("target_type")
+  targetId     String           @map("target_id") @db.Uuid
+  assignedById String           @map("assigned_by_id") @db.Uuid
+  dueDate      DateTime?        @map("due_date") @db.Timestamptz(6)
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  course     Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user       User   @relation("AssignmentRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  assignedBy User   @relation("AssignmentCreator", fields: [assignedById], references: [id], onDelete: Restrict)
+
+  @@unique([courseId, userId])
+  @@index([userId])
+  @@index([courseId])
+  @@map("assignments")
+}
+
+enum AssignmentTarget {
+  user
+  department
+
+  @@map("assignment_target")
+}
+
+enum AttemptStatus {
+  in_progress
+  submitted
+  expired
+
+  @@map("attempt_status")
+}
+
+model QuizAttempt {
+  id             String        @id @default(uuid()) @db.Uuid
+  userId         String        @map("user_id") @db.Uuid
+  courseId       String        @map("course_id") @db.Uuid
+  attemptNumber  Int           @map("attempt_number")
+  scorePercent   Int?          @map("score_percent")
+  totalQuestions Int           @default(0) @map("total_questions")
+  correctAnswers Int           @default(0) @map("correct_answers")
+  passed         Boolean?
+  status         AttemptStatus @default(in_progress)
+  setIndex       Int?          @map("set_index")
+  questionOrder  Json?         @map("question_order")
+  optionOrder    Json?         @map("option_order")
+  startedAt      DateTime      @default(now()) @map("started_at") @db.Timestamptz(6)
+  submittedAt    DateTime?     @map("submitted_at") @db.Timestamptz(6)
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  answers QuizAnswer[]
+
+  @@unique([userId, courseId, attemptNumber])
+  @@index([userId, courseId])
+  @@map("quiz_attempts")
+}
+
+model QuizAnswer {
+  id         String  @id @default(uuid()) @db.Uuid
+  attemptId  String  @map("attempt_id") @db.Uuid
+  questionId String  @map("question_id") @db.Uuid
+  isCorrect  Boolean @default(false) @map("is_correct")
+
+  attempt        QuizAttempt        @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question       Question           @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOption QuizAnswerOption[]
+
+  @@unique([attemptId, questionId])
+  @@map("quiz_answers")
+}
+
+model QuizAnswerOption {
+  answerId         String @map("answer_id") @db.Uuid
+  selectedOptionId String @map("selected_option_id") @db.Uuid
+
+  answer         QuizAnswer     @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  selectedOption QuestionOption @relation(fields: [selectedOptionId], references: [id], onDelete: Cascade)
+
+  @@id([answerId, selectedOptionId])
+  @@map("quiz_answer_options")
+}
+
+enum NotificationType {
+  course_assigned
+  deadline_reminder
+  result
+
+  @@map("notification_type")
+}
+
+enum NotificationStatus {
+  pending
+  sent
+  failed
+
+  @@map("notification_status")
+}
+
+model Notification {
+  id         String             @id @default(uuid()) @db.Uuid
+  userId     String             @map("user_id") @db.Uuid
+  courseId   String?            @map("course_id") @db.Uuid
+  type       NotificationType
+  title      String             @db.VarChar(200)
+  message    String             @db.VarChar(1000)
+  status     NotificationStatus @default(pending)
+  retryCount Int                @default(0) @map("retry_count")
+  isRead     Boolean            @default(false) @map("is_read")
+  createdAt  DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  sentAt     DateTime?          @map("sent_at") @db.Timestamptz(6)
+  readAt     DateTime?          @map("read_at") @db.Timestamptz(6)
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(100)
+  entityId   String?  @map("entity_id") @db.Uuid
+  changes    Json?
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model SystemSetting {
+  key         String   @id @db.VarChar(100)
+  value       String   @db.VarChar(1000)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedById String?  @map("updated_by_id") @db.Uuid
+
+  updatedBy User? @relation("SettingUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("system_settings")
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique @db.VarChar(50)
+  description String?  @db.VarChar(255)
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  users           User[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String @map("role_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Department {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @db.VarChar(150)
+  code        String   @unique @db.VarChar(50)
+  description String?  @db.VarChar(255)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  users User[]
+
+  @@map("departments")
+}
+
+enum AuthProvider {
+  local
+  ad
+
+  @@map("auth_provider")
+}
+
+enum ApprovalStatus {
+  pending
+  approved
+  rejected
+
+  @@map("approval_status")
+}
+
+model User {
+  id               String         @id @default(uuid()) @db.Uuid
+  username         String         @unique @db.VarChar(100)
+  adUsername       String?        @unique @map("ad_username") @db.VarChar(100)
+  passwordHash     String?        @map("password_hash") @db.VarChar(255)
+  authProvider     AuthProvider   @default(local) @map("auth_provider")
+  approvalStatus   ApprovalStatus @default(pending) @map("approval_status")
+  email            String?        @unique @db.VarChar(255)
+  fullName         String         @map("full_name") @db.VarChar(200)
+  employeeId       String?        @unique @map("employee_id") @db.VarChar(50)
+  jobTitle         String?        @map("job_title") @db.VarChar(150)
+  departmentId     String?        @map("department_id") @db.Uuid
+  roleId           String         @map("role_id") @db.Uuid
+  isActive         Boolean        @default(true) @map("is_active")
+  approvedAt       DateTime?      @map("approved_at") @db.Timestamptz(6)
+  approvedByUserId String?        @map("approved_by_user_id") @db.Uuid
+  rejectionReason  String?        @map("rejection_reason") @db.VarChar(255)
+  lastLoginAt      DateTime?      @map("last_login_at") @db.Timestamptz(6)
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  department          Department?     @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  role                Role            @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  approvedBy          User?           @relation("UserApproval", fields: [approvedByUserId], references: [id], onDelete: SetNull)
+  approvedUsers       User[]          @relation("UserApproval")
+  createdCourses      Course[]        @relation("CourseCreator")
+  createdQuestions    Question[]      @relation("QuestionCreator")
+  slideProgress       SlideProgress[]
+  assignments         Assignment[]    @relation("AssignmentRecipient")
+  assignedAssignments Assignment[]    @relation("AssignmentCreator")
+  quizAttempts        QuizAttempt[]
+  notifications       Notification[]
+  auditLogs           AuditLog[]
+  updatedSettings     SystemSetting[] @relation("SettingUpdater")
+
+  @@index([departmentId])
+  @@index([roleId])
+  @@index([approvalStatus])
+  @@map("users")
+}

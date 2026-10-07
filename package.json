@@ -1,0 +1,24 @@
+{
+  "name": "etraining",
+  "version": "0.1.0",
+  "private": true,
+  "description": "E-Training System — internal training platform (Next.js + NestJS + PostgreSQL + LDAPS)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "node scripts/dev.mjs",
+    "db:up": "node scripts/db.mjs up",
+    "db:down": "node scripts/db.mjs down",
+    "api:dev": "npm --workspace apps/api run start:dev",
+    "api:build": "npm --workspace apps/api run build",
+    "api:test": "npm --workspace apps/api run test",
+    "api:lint": "npm --workspace apps/api run lint",
+    "web:dev": "npm --workspace apps/web run dev"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
